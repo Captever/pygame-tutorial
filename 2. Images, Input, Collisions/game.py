@@ -32,15 +32,15 @@ class Game:
                     sys.exit()
                 # when the key is pressed down
                 if event.type == pygame.KEYDOWN:
-                    if event.type == pygame.K_w:
+                    if event.key == pygame.K_w:
                         self.movement[0] = True
-                    if event.type == pygame.K_s:
+                    if event.key == pygame.K_s:
                         self.movement[1] = True
                 # when the key is pressed up
                 if event.type == pygame.KEYUP:
-                    if event.type == pygame.K_w:
+                    if event.key == pygame.K_w:
                         self.movement[0] = False
-                    if event.type == pygame.K_s:
+                    if event.key == pygame.K_s:
                         self.movement[1] = False
             
             pygame.display.update()
