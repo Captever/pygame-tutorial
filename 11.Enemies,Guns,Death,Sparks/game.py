@@ -30,6 +30,8 @@ class Game:
             'player': load_image('entities/player.png'),
             'background': load_image('background.png'),
             'clouds': load_images('clouds'),
+            'gun': load_image('gun.png'),
+            'projectile': load_image('projectile.png'),
             'enemy/idle': Animation(load_images('entities/enemy/idle'), img_dur=6),
             'enemy/run': Animation(load_images('entities/enemy/run'), img_dur=4),
             'player/idle': Animation(load_images('entities/player/idle'), img_dur=6),
@@ -62,6 +64,7 @@ class Game:
             else:
                 self.enemies.append(Enemy(self, spawner['pos'], (8, 15)))
 
+        self.projectiles = []
         self.particles = []
 
         self.scroll = [0, 0]
@@ -91,6 +94,20 @@ class Game:
 
             self.player.update(self.tilemap, (self.movement[1] - self.movement[0], 0))
             self.player.render(self.display, offset=render_scroll)
+
+            # [[x, y], direction, timer]
+            for projectile in self.projectiles.copy():
+                projectile[0][0] += projectile[1] # give direction to bullet
+                projectile[2] += 1
+                img = self.assets['projectile']
+                self.display.blit(img, (projectile[0][0] - img.get_width() / 2 - render_scroll[0], projectile[0][1] - img.get_height() / 2 - render_scroll[1]))
+                if self.tilemap.solid_check(projectile[0]):
+                    self.projectiles.remove(projectile)
+                elif projectile[2] > 360: # 360 = 6sec(60frame per sec)
+                    self.projectiles.remove(projectile)
+                elif abs(self.player.dashing) < 50:
+                    if self.player.rect().collidepoint(projectile[0]):
+                        self.projectiles.remove(projectile)
 
             for particle in self.particles.copy():
                 kill = particle.update()
