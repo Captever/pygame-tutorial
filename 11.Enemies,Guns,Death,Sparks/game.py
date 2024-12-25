@@ -49,9 +49,12 @@ class Game:
 
         self.tilemap = Tilemap(self, tile_size = 16)
         try:
-            self.tilemap.load('map.json')
+            self.load_level(0)
         except FileNotFoundError:
             pass
+
+    def load_level(self, map_id):
+        self.tilemap.load('../resources/data/maps/' + str(map_id) + '.json')
 
         self.leaf_spawners = []
         for tree in self.tilemap.extract([('large_decor', 2)], keep=True):
