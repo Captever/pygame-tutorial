@@ -1,6 +1,7 @@
 import sys
 import random
 import math
+import os
 
 import pygame
 
@@ -49,8 +50,9 @@ class Game:
         self.clouds = Clouds(self.assets['clouds'], count=16)
 
         self.tilemap = Tilemap(self, tile_size = 16)
+        self.level = 0
         try:
-            self.load_level(0)
+            self.load_level(self.level)
         except FileNotFoundError:
             pass
 
@@ -77,6 +79,7 @@ class Game:
 
         self.scroll = [0, 0]
         self.dead = 0
+        self.transition = -30
 
     def run(self):
         while True:
@@ -84,10 +87,20 @@ class Game:
 
             self.screenshake = max(0, self.screenshake - 1)
 
+            if not len(self.enemies):
+                self.transition += 1
+                if self.transition > 30:
+                    self.level = min(self.level + 1, len(os.listdir('../resources/data/maps')) - 1)
+                    self.load_level(self.level)
+            if self.transition < 0:
+                self.transition += 1
+
             if self.dead:
                 self.dead += 1
+                if self.dead >= 10:
+                    self.transition = min(30, self.transition + 1)
                 if self.dead > 40: # after 40 frame after dead, load current level again
-                    self.load_level(0)
+                    self.load_level(self.level)
 
             camera_smoothness = 30
             self.scroll[0] += (self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) / camera_smoothness
@@ -180,6 +193,12 @@ class Game:
                     if event.key == pygame.K_d:
                         self.movement[1] = False
             
+            if self.transition:
+                transition_surf = pygame.Surface(self.display.get_size())
+                pygame.draw.circle(transition_surf, (255, 255, 255), (self.display.get_width() // 2, self.display.get_height() // 2), (30 - abs(self.transition)) * 8)
+                transition_surf.set_colorkey((255, 255, 255))
+                self.display.blit(transition_surf, (0, 0))
+
             screenshake_offset = (random.random() * self.screenshake - self.screenshake / 2, random.random() * self.screenshake - self.screenshake / 2)
             self.screen.blit(pygame.transform.scale(self.display, self.screen.get_size()), screenshake_offset)
             pygame.display.update()
