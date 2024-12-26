@@ -6,7 +6,7 @@ import os
 import pygame
 
 from scripts.entities import PhysicsEntity, Player, Enemy
-from scripts.utils import load_image, load_images, Animation
+from scripts.utils import load_image, load_images, load_sfx, Animation
 from scripts.tilemap import Tilemap
 from scripts.clouds import Clouds
 from scripts.particle import Particle
@@ -44,6 +44,14 @@ class Game:
             'player/wall_slide': Animation(load_images('entities/player/wall_slide')),
             'particle/leaf': Animation(load_images('particles/leaf'), img_dur=20, loop=False),
             'particle/particle': Animation(load_images('particles/particle'), img_dur=6, loop=False),
+        }
+
+        self.sfx = {
+            'jump': load_sfx('jump.wav', 0.7),
+            'dash': load_sfx('dash.wav', 0.3),
+            'hit': load_sfx('hit.wav', 0.8),
+            'shoot': load_sfx('shoot.wav', 0.4),
+            'ambience': load_sfx('ambience.wav', 0.2),
         }
         
         self.player = Player(self, (50, 50), (8, 15))
@@ -83,6 +91,12 @@ class Game:
         self.transition = -30
 
     def run(self):
+        pygame.mixer.music.load('../resources/data/music.wav')
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1) # infinite loop
+
+        self.sfx['ambience'].play(-1)
+
         while True:
             self.display.fill((0, 0, 0, 0))
             self.display_2.blit(self.assets['background'], (0, 0))
@@ -152,6 +166,7 @@ class Game:
                     if self.player.rect().collidepoint(projectile[0]):
                         self.projectiles.remove(projectile)
                         self.dead += 1
+                        self.sfx['hit'].play()
                         self.screenshake = max(16, self.screenshake)
                         for i in range(15):
                             angle = random.random() * math.pi * 2
@@ -191,7 +206,8 @@ class Game:
                     if event.key == pygame.K_d:
                         self.movement[1] = True
                     if event.key == pygame.K_w:
-                        self.player.jump()
+                        if self.player.jump():
+                            self.sfx['jump'].play()
                     if event.key == pygame.K_x:
                         self.player.dash()
                 # when the key is pressed up
